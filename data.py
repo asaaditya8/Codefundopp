@@ -29,11 +29,7 @@ def obtain_categories(fpath=None):
 
 
 def make_soup(url):
-    try:
-        thepage = urllib.request.urlopen(url)
-    except urllib.error.HTTPError:
-        return None
-
+    thepage = urllib.request.urlopen(url)
     soupdata = BeautifulSoup(thepage, "html.parser")
     return soupdata
 
@@ -42,7 +38,10 @@ def obtain_image_url(url, id):
     if id not in ['NASA_DISP', 'EO']:
         return []
 
-    soup = make_soup(url)
+    try:
+        soup = make_soup(url)
+    except:
+        return []
 
     if soup is None:
         return []
