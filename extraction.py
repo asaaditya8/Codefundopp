@@ -39,10 +39,13 @@ def extract(model, batch_size=8):
     return np.concatenate(predictions, axis=0).reshape(n, -1)
 
 
-if __name__ == '__main__':
+def save_predictions():
     output_file = 'nasnet_features'
     model = NASNetMobile(include_top=False)
     predictions = extract(model, BATCH_SIZE)
     # norm_predictions = predictions / np.linalg.norm(predictions, axis=-1, keepdims=True)
     print(predictions.shape)
     np.save(output_file, predictions)
+
+if __name__ == '__main__':
+    pass
