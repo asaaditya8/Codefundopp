@@ -1,117 +1,65 @@
-import requests, json, urllib, urllib.request, numpy as np, pandas as pd
-from tqdm import tqdm
-from bs4 import BeautifulSoup
-from concurrent.futures import ThreadPoolExecutor
-
-def obtain_json():
-    parameters={"limit":1000,"days":5000}
-    response=requests.get('https://eonet.sci.gsfc.nasa.gov/api/v2/events?status=closed')
-    data = response.json()
-
-    output_file = 'json_response.json'
-
-    with open(output_file, 'w') as f:
-        json.dump(data, f)
+import os
+import numpy as np
+import matplotlib.pyplot as plt
+from PIL import Image
 
 
-def obtain_categories(fpath=None):
-    # with open(fpath, 'r') as f:
-    #     data = json.load(f)
-    #     data = data['events']
-    #
-    # categories = set()
-    # for temp in data:
-    #     for t in temp['categories']:
-    #         categories.add(t['title'])
-    # categories = sorted(categories)
-    categories = ('Drought', 'Dust and Haze', 'Earthquakes', 'Floods', 'Landslides', 'Manmade', 'Sea and Lake Ice', 'Severe Storms', 'Snow', 'Temperature Extremes', 'Volcanoes', 'Water Color', 'Wildfires')
-    return categories
+def open_pil_image(path):
+    return Image.open(path)
 
 
-def make_soup(url):
-    thepage = urllib.request.urlopen(url)
-    soupdata = BeautifulSoup(thepage, "html.parser")
-    return soupdata
+def open_image(path):
+    return np.array(Image.open(path), dtype='float32')
 
 
-def obtain_image_url(url, id):
-    if id not in ['NASA_DISP', 'EO']:
-        return []
-
-    try:
-        soup = make_soup(url)
-    except:
-        return []
-
-    if soup is None:
-        return []
-
-    image_urls = []
-    for img in soup.find_all('img'):
-        temp = img.get('src')
-        if temp[:1] == '/':
-            image = None
-            # image = "https://disasters.nasa.gov" + temp
-        else:
-            image = temp
-
-        if id == 'NASA_DISP' and image:
-            if image.split('/')[7] != 'sidebar_thumb':
-                image_urls.append(image)
-
-        elif id == 'EO' and image:
-            image_urls.append(image)
-
-    return image_urls
+def resize_pil_image(Img, size):
+    return Img.resize(size, Image.ANTIALIAS)
 
 
-def obtain_url_csv():
-    json_file_path = 'json_response.json'
-    csv_path = 'eo_nasa_urls.csv'
-
-    with open(json_file_path, 'r') as f:
-        data = json.load(f)
-        data = data['events']
-
-    all_cats = obtain_categories()
-    n = len(all_cats)
-    cat_dict = {k: i for i, k in enumerate(all_cats)}
-
-    csv_data = []
-
-    for temp in tqdm(data):
-        y = np.zeros((n,), dtype='int')
-        img_urls = []
-
-        for c in temp['categories']:
-            y[cat_dict[c['title']]] = 1
-
-        for s in temp['sources']:
-            img_urls.extend(obtain_image_url(s['url'], s['id']))
-
-        if img_urls:
-            csv_data.extend([[i] + list(y) for i in img_urls])
-
-    df = pd.DataFrame(csv_data, columns=['url'] + list(all_cats))
-    df.to_csv(csv_path)
+def resize_image(img, size):
+    return np.array(resize_pil_image(Image.fromarray(img.astype('uint8')), size), dtype='float32')
 
 
-def download_image(x):
-    i, a = x
-    try:
-        urllib.request.urlretrieve(a, 'data/' + str(i) + '.jpg')
-    except:
-        return -1
+def rescale_pil_image(Img, size):
+    W, H = size
+    w, h = Img.size
+    factor = np.min([W/w, H/h])
+    nw = int(w*factor)
+    nh = int(h*factor)
+    return resize_pil_image(Img, (nw,nh))
 
-    return 0
 
-def obtain_dataset():
-    csv_path = 'eo_nasa_urls.csv'
-    df = pd.read_csv(csv_path, index_col=0)
-    with ThreadPoolExecutor(max_workers=5) as execr:
-        res = execr.map(download_image, enumerate(df.url))
-        arr = [r for r in res]
+def rescale_image(img, size):
+    return np.array(rescale_pil_image(Image.fromarray(img.astype('uint8')), size), dtype='float32')
+
+
+def pad_image(img, size):
+    wp, hp = size
+    H, W = img.shape[:-1]
+    w = W + 2*wp
+    h = H + 2*hp
+    new_img = np.zeros((h,w,3), dtype='float32')
+    new_img[hp:h-hp, wp:w-wp, :] = img
+    return new_img
+
+
+def pad_pil_image(Img, size):
+    return Image.fromarray(pad_image(np.array(Img, dtype='float32'), size).astype('uint8'))
+
+
+def rescale_pad(img, size):
+    img = rescale_image(img, size)
+    W, H = size
+    h, w = img.shape[:-1]
+    return pad_image(img, ((W-w)//2, (H-h)//2))
+
+
+def rescale_pad_pil(Img, size):
+    return Image.fromarray(rescale_pad(np.array(Img, dtype='float32'), size).astype('uint8'))
 
 
 if __name__ == '__main__':
-    pass
+    img = open_pil_image('data/3.jpg')
+    ni = rescale_pad_pil(img, (224, 224))
+    plt.imshow(ni)
+    plt.show()
