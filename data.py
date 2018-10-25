@@ -1,7 +1,7 @@
 import requests, json, urllib, urllib.request, numpy as np, pandas as pd
 from tqdm import tqdm
 from bs4 import BeautifulSoup
-
+from concurrent.futures import ThreadPoolExecutor
 
 def obtain_json():
     parameters={"limit":1000,"days":5000}
@@ -96,6 +96,22 @@ def obtain_url_csv():
     df.to_csv(csv_path)
 
 
-if __name__ == '__main__':
-    obtain_url_csv()
+def download_image(x):
+    i, a = x
+    try:
+        urllib.request.urlretrieve(a, 'data/' + str(i) + '.jpg')
+    except:
+        return -1
 
+    return 0
+
+def obtain_dataset():
+    csv_path = 'eo_nasa_urls.csv'
+    df = pd.read_csv(csv_path, index_col=0)
+    with ThreadPoolExecutor(max_workers=5) as execr:
+        res = execr.map(download_image, enumerate(df.url))
+        arr = [r for r in res]
+
+
+if __name__ == '__main__':
+    pass
