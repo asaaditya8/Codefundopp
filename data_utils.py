@@ -35,11 +35,13 @@ def rescale_image(img, size):
 
 def pad_image(img, size):
     wp, hp = size
+    wp1 = int(np.ceil(wp/2)); wp2 = int(np.floor(wp/2))
+    hp1 = int(np.ceil(hp/2)); hp2 = int(np.floor(hp/2))
     H, W = img.shape[:-1]
-    w = W + 2*wp
-    h = H + 2*hp
+    w = W + wp
+    h = H + hp
     new_img = np.zeros((h,w,3), dtype='float32')
-    new_img[hp:h-hp, wp:w-wp, :] = img
+    new_img[hp1:h-hp2, wp1:w-wp2, :] = img
     return new_img
 
 
@@ -51,7 +53,7 @@ def rescale_pad(img, size):
     img = rescale_image(img, size)
     W, H = size
     h, w = img.shape[:-1]
-    return pad_image(img, ((W-w)//2, (H-h)//2))
+    return pad_image(img, (W-w, H-h))
 
 
 def rescale_pad_pil(Img, size):

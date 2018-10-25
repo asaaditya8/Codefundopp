@@ -1,6 +1,6 @@
-import requests, json, os, urllib, urllib.request, numpy as np, pandas as pd
+import json, os, urllib, urllib.request, numpy as np, pandas as pd #requests
 from tqdm import tqdm
-from bs4 import BeautifulSoup
+# from bs4 import BeautifulSoup
 from concurrent.futures import ThreadPoolExecutor
 from PIL import Image
 
@@ -114,7 +114,8 @@ def obtain_dataset():
         arr = [r for r in res]
     print("Finished Downloading.")
 
-if __name__ == '__main__':
+
+def clean_data():
     csv_path = 'eo_nasa_urls.csv'
     df = pd.read_csv(csv_path, index_col=0)
 
@@ -122,8 +123,14 @@ if __name__ == '__main__':
     data_path = 'data/'
     for fname in os.listdir(data_path):
         try:
-            img = Image.open(data_path+fname)
+            img = np.array(Image.open(data_path + fname))
+            if img.shape[-1] != 3:
+                os.remove(data_path + fname)
+                print('deleted', img.shape, fname)
         except:
             p_fnames.append(fname)
 
     print(len(p_fnames))
+
+if __name__ == '__main__':
+    pass
