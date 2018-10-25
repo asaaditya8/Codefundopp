@@ -59,7 +59,7 @@ def rescale_pad_pil(Img, size):
 
 
 if __name__ == '__main__':
-    img = open_pil_image('data/3.jpg')
-    ni = rescale_pad_pil(img, (224, 224))
+    img = open_image('data/0.jpg')
+    ni = rescale_pad(img, (224, 224)).astype('uint8')
     plt.imshow(ni)
     plt.show()
