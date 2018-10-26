@@ -3,6 +3,7 @@ from concurrent.futures import ThreadPoolExecutor
 from keras.applications.nasnet import NASNetMobile
 from keras.models import *
 from tqdm import tqdm
+import pandas as pd
 
 from data_utils import open_image, rescale_pad
 
@@ -48,4 +49,7 @@ def save_predictions():
     np.save(output_file, predictions)
 
 if __name__ == '__main__':
-    pass
+    CSV_PATH = 'eo_nasa_urls.csv'
+    df = pd.read_csv(CSV_PATH, index_col=0)
+    df_arr = np.array(df)[:, 1:]
+    print(df_arr.sum(axis=0))
