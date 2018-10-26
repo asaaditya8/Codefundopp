@@ -5,19 +5,18 @@ from keras.models import load_model,model_from_json
 from keras.applications.resnet50 import preprocess_input
 from shutil import copyfile
 import json
-
 app = Flask(__name__)
 photos = UploadSet('photos',IMAGES)
 app.config['UPLOADED_PHOTOS_DEST'] = 'data/'
 configure_uploads(app, photos)
 PATH = 'data/'
 
+
 @app.route("/upload", methods=['GET', 'POST'])
 def upload():
     if request.method == 'POST' and 'photo' in request.files:
         filename = photos.save(request.files['photo'])
         copyfile(PATH+filename,'static/'+filename)
-
         output = call_work(filename)
         ou1 = output
         if output.argmax(axis=-1) == 1:
@@ -26,7 +25,6 @@ def upload():
         	output = "Storm"
         return render_template('result.html',name = str('static/'+filename),ou = output,ou1=ou1)
     return render_template('./upload.html')
-
 
 if __name__ == '__main__':
     app.run(debug=True)
@@ -43,7 +41,6 @@ def call_work(filename):
     loaded.load_weights("model/resnet_cnn_1_weights.h5")
     # loaded = load_model('model/resnet2_cnn_1.h5')
     return loaded.predict(arr)
-
 import numpy as np, pandas as pd
 # import matplotlib.pyplot as plt
 from PIL import Image
