@@ -1,10 +1,48 @@
-from flask import Flask
-from keras.models import load_model
-app = Flask(__name__)
+from flask import Flask, render_template, request
+from flask_uploads import UploadSet, configure_uploads, IMAGES
+from keras import backend as K
+from keras.models import load_model,model_from_json
+from keras.applications.resnet50 import preprocess_input
+from shutil import copyfile
+import json
 
-@app.route("/")
-def hello():
-	return "Hello Azure!"
+app = Flask(__name__)
+photos = UploadSet('photos',IMAGES)
+app.config['UPLOADED_PHOTOS_DEST'] = 'data/'
+configure_uploads(app, photos)
+PATH = 'data/'
+
+@app.route("/upload", methods=['GET', 'POST'])
+def upload():
+    if request.method == 'POST' and 'photo' in request.files:
+        filename = photos.save(request.files['photo'])
+        copyfile(PATH+filename,'static/'+filename)
+
+        output = call_work(filename)
+        ou1 = output
+        if output.argmax(axis=-1) == 1:
+        	output = "WildFire"
+        else:
+        	output = "Storm"
+        return render_template('result.html',name = str('static/'+filename),ou = output,ou1=ou1)
+    return render_template('./upload.html')
+
+
+if __name__ == '__main__':
+    app.run(debug=True)
+
+
+def call_work(filename):
+    arr = load_img(filename)
+    K.clear_session()
+    json_file = open('model/resnet_cnn_1_arch.json', 'r')
+    loaded_model_json = json.load(json_file)
+    json_file.close()
+    loaded = model_from_json(loaded_model_json)
+    # load weights into new model
+    loaded.load_weights("model/resnet_cnn_1_weights.h5")
+    # loaded = load_model('model/resnet2_cnn_1.h5')
+    return loaded.predict(arr)
 
 import numpy as np, pandas as pd
 # import matplotlib.pyplot as plt
@@ -19,7 +57,6 @@ from PIL import Image
 # CSV_PATH = '/content/gdrive/My Drive/ml_summer18/Codefundopp/eo_nasa_urls.csv'
 # FEATURES = '/content/gdrive/My Drive/ml_summer18/Codefundopp/nasnet_features.npy'
 # BATCH_SIZE = 8
-PATH = 'data/'
 
 def open_pil_image(path):
     return Image.open(path)
