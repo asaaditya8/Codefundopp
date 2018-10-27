@@ -68,7 +68,7 @@ class MultiLabels():
         storm_counter = 0
         for i in range(len(df_arr)):
             if df_arr[i][-1] == 1 and wildfire_counter < num_wildfire:
-                mask[i] = False
+                mask[i] = False 
                 wildfire_counter += 1
             if df_arr[i][-6] == 1 and storm_counter < num_storm:
                 mask[i] = False
@@ -76,9 +76,9 @@ class MultiLabels():
             if sum(df_arr[i]) > 1:
                 mask[i] = False
 
-        # df_arr = np.delete(df_arr, [0, 1, 2 ,3 ,4 ,5, 6, 8, 9, 10, 11], axis=1)
-        # mask = [not x for x in mask]
-        df_arr = np.delete(df_arr, [2, 4], axis=1)
+        df_arr = np.delete(df_arr, [0, 1, 2 ,3 ,4 ,5, 6, 8, 9, 10, 11], axis=1)
+        mask = [not x for x in mask]
+        # df_arr = np.delete(df_arr, [2, 4], axis=1)
 
         df_arr = df_arr[mask, :]
         # print(df_arr.shape)

@@ -47,13 +47,15 @@ def get_X():
 
 def get_block(f, k, strides):
     block = [
-        SeparableConv2D(f, k, strides=1, padding='same', use_bias=False),
+        Conv2D(f, k, strides=1, padding='same', use_bias=False),
         BatchNormalization(),
         ELU(),
-        Conv2D(f//2, 1, strides=strides, padding='same', use_bias=False),
-        BatchNormalization(),
-        ELU()
+        # Conv2D(f//2, 1, strides=strides, padding='same', use_bias=False),
+        # BatchNormalization(),
+        # ELU()
     ]
+    if strides == 2:
+        block.append(MaxPooling2D())
     return block
 
 
@@ -68,29 +70,31 @@ def get_model():
     setting = [
         (32, 3, 2, 1),
         (64, 3, 1, 1),
+        (64, 3, 2, 1),
+        (128, 3, 1, 2),
         (128, 3, 2, 1),
-        (128, 3, 1, 1),
+        (256, 3, 1, 2),
         (256, 3, 2, 1),
-        (256, 3, 1, 4),
+        (512, 3, 1, 3),
         (512, 3, 2, 1),
-        (512, 3, 1, 6),
-        (1024, 3, 2, 1),
-        (1024, 3, 1, 2),
     ]
 
     block_list = []
     for item in setting:
-        block_list.append(get_block(*item[:3]))
+        for n in range(item[-1]):
+            block_list.append(get_block(*item[:3]))
 
     inp = Input((224, 224, 3))
     x = BatchNormalization()(inp)
 
-    for block, item in zip(block_list, setting):
-        for i in range(item[-1]):
-            x = use_block(x, block)
+    for block in block_list:
+        # for i in range(item[-1]):
+        x = use_block(x, block)
 
     x = Average()([GlobalMaxPooling2D()(x), GlobalAveragePooling2D()(x)])
-    x = Dense(11, activation='softmax', use_bias=False)(x)
+    x = Dense(50, activation='relu', use_bias=False)(x)
+    x = BatchNormalization()(x)
+    x = Dense(2, activation='softmax', use_bias=False)(x)
 
     model = Model(inp, x)
 
