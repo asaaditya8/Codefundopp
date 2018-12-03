@@ -1,4 +1,4 @@
-# Identifying Natural Disasters using aerial Images 
+# Identifying Natural Disasters using Aerial Images 
 
 We will be using RGB aerial images from NASA earth observatory which are satellite images of various resolutions and the images are labelled as the disaster type like storms, droughts, wildfire etc.
 
