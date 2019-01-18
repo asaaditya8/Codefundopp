@@ -1,0 +1,11 @@
+train model in aws: cannot be done, because in free tier you only get t2.micro instance with just 1 cpu and no gpu
+
+
+
+TODO deploy model in azure using machine learning service in Azure Container Instances
+create a workspace in azure DONE
+TODO register model in that workspace
+TODO create an image configuration by providing execution script, conda yml file, and tags
+TODO create an image using the image config, model and workspace and give it a name
+TODO create azure webservice and call deploy_from_image providing config, workspace, image, serive_name and ssl certificates
+TODO create a client script for consuming the service using authentication
