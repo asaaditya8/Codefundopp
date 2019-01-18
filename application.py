@@ -20,9 +20,9 @@ def upload():
         output = call_work(filename)
         ou1 = output
         if output.argmax(axis=-1) == 1:
-        	output = "WildFire"
+            output = "WildFire"
         else:
-        	output = "Storm"
+            output = "Storm"
         return render_template('result.html',name = str('static/'+filename),ou = output,ou1=ou1)
     return render_template('./upload.html')
 
