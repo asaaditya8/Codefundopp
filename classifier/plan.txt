@@ -1,6 +1,6 @@
 train model in aws: cannot be done, because in free tier you only get t2.micro instance with just 1 cpu and no gpu
 
-
+TODO train using subsampler, or try class weights
 
 TODO deploy model in azure using machine learning service in Azure Container Instances
 create a workspace in azure DONE
