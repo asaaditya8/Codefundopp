@@ -20,8 +20,8 @@ class CustomDatasetFromCSV(Dataset):
     def __init__(self, csv_path, transform=None, target_transform=None):
         # csv_path = '/home/aaditya/PycharmProjects/Codefundopp/eo_nasa_file_url_cls_outof_10.csv'
         self.data = pd.read_csv(csv_path)
-        self.classes = ['Dust and Haze', 'Floods', 'Manmade', 'Sea and Lake Ice',
-                       'Severe Storms', 'Snow', 'Temperature Extremes', 'Volcanoes',
+        self.classes = ['Dust and Haze', 'Floods', 'Sea and Lake Ice',
+                       'Severe Storms', 'Snow', 'Volcanoes',
                        'Water Color', 'Wildfires']
         self.class_to_idx = {k: i for i, k in enumerate(self.classes)}
         self.labels = np.asarray(self.data.iloc[:, 2])
@@ -56,5 +56,6 @@ class CustomDatasetFromCSV(Dataset):
 
 if __name__ == "__main__":
     transformations = transforms.Compose([transforms.ToTensor()])
-    csv_path = '/home/aaditya/PycharmProjects/Codefundopp/eo_nasa_file_url_cls_outof_10.csv'
+    csv_path = '/home/aaditya/PycharmProjects/Codefundopp/eo_nasa_file_url_cls_8_cleaned.csv'
+
     custom_mnist_from_csv = CustomDatasetFromCSV(csv_path, None)
