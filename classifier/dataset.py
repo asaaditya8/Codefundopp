@@ -23,6 +23,7 @@ class CustomDatasetFromCSV(Dataset):
         self.classes = ['Dust and Haze', 'Floods', 'Sea and Lake Ice',
                        'Severe Storms', 'Snow', 'Volcanoes',
                        'Water Color', 'Wildfires']
+        self.c = len(self.classes)
         self.class_to_idx = {k: i for i, k in enumerate(self.classes)}
         self.labels = np.asarray(self.data.iloc[:, 2])
         self.transform = transform
