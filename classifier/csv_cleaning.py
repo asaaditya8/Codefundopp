@@ -1,8 +1,10 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from matplotlib import patches
 from PIL import Image
 import os
+import shutil
 
 from classifier.create_ws import AZHelper
 import math
@@ -115,6 +117,65 @@ def fresh_csv():
     df['Class'] = new_cls
     df.to_csv(FILE_CLS_8, index=False)
 
+def image_ops():
+    # Copying wildfire images to new destination
+    FILE_CLS_8 = '/home/aaditya/PycharmProjects/Codefundopp/eo_nasa_file_url_cls_8_cleaned.csv'
+
+    df = pd.read_csv(FILE_CLS_8)
+
+    root = '/home/aaditya/PycharmProjects/Codefundopp/data'
+    dst = '/home/aaditya/PycharmProjects/Codefundopp/data_wf/present'
+
+    wildfire_records = df[df['Class'] == 7]
+
+    for i in range(len(wildfire_records)):
+        fname = wildfire_records.iloc[i, 0]
+        fsrc = f'{root}/{fname}.jpg'
+        fdst = f'{dst}/{fname}.jpg'
+        shutil.copy(fsrc, fdst)
+
+    #Renaming no wildfire screenshots
+    root = '/home/aaditya/PycharmProjects/Codefundopp/data_wf/absent'
+
+    count = 0
+    for f in os.listdir(root):
+        fsrc = f'{root}/{f}'
+        fdest = f'{root}/nowf_{count}.png'
+        shutil.move(fsrc, fdest)
+        count += 1
+
+    #Converting them to jpg
+    for f in os.listdir(root):
+        fsrc = f'{root}/{f}'
+        fdst = f'{root}/{f.split(".")[0]}.jpg'
+        img = Image.open(fsrc)
+        img.save(fdst)
+
+    #Removing png
+    for f in os.listdir(root):
+        if f.split('.')[-1] == 'png':
+            fsrc = f'{root}/{f}'
+            os.remove(fsrc)
+
+    # Drawing bounding box for cropping all the images
+    f = os.listdir(root)[0]
+    img = Image.open(f'{root}/{f}')
+
+    plt.figure(figsize=(14, 14))
+    ax = plt.gca()
+    ax.imshow(img)
+
+    rec = patches.Rectangle((235,50), 1310, 850, edgecolor='red', fill=None)
+    ax.add_patch(rec)
+    plt.show()
+
+    # Cropping all the images
+    for f in os.listdir(root):
+        fsrc = f'{root}/{f}'
+        img = Image.open(fsrc)
+        img = img.crop((235,50, 1545, 900))
+        img.save(fsrc)
+
 def plot_samples(cls, num):
     """
     Plots random samples of a class
@@ -193,4 +254,7 @@ if __name__ == '__main__':
     FILE_CLS_8 = '/home/aaditya/PycharmProjects/Codefundopp/eo_nasa_file_url_cls_8_cleaned.csv'
 
     df = pd.read_csv(FILE_CLS_8)
+
+    root= '/home/aaditya/PycharmProjects/Codefundopp/data_wf/absent'
+
 

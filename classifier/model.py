@@ -40,6 +40,7 @@ if __name__ == '__main__':
     valid_dl = DataLoader(full_dataset, BATCH_SIZE, sampler=valid_sampler)
     test_dl = DataLoader(full_dataset, BATCH_SIZE)
 
-    data = vision.ImageDataBunch(train_dl, valid_dl, test_dl=test_dl, device=DEVICE)
+    # data = vision.ImageDataBunch(train_dl, valid_dl, test_dl=test_dl, device=DEVICE)
 
-    learn = vision.create_cnn(data, models.squeezenet1_0)
+    # learn = vision.create_cnn(data, models.squeezenet1_0)
+    model = vision.models.wrn_22()
