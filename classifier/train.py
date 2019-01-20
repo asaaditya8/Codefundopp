@@ -1,18 +1,31 @@
-from fastai import vision
-from classifier.dataset import CustomDatasetFromCSV
+from classifier.dataset import WFDataset
+from classifier.xception import Xception
 import torch
-import torch.nn.functional as F
-from torch.utils.data import SubsetRandomSampler, DataLoader
-from torchvision.transforms import transforms
-from torchvision import models
-import PIL
-import numpy as np
+from torch import nn
+from torch.utils.data import DataLoader
 
 BATCH_SIZE = 8
-TRAIN_RATIO = 0.9
-SHUFFLE = True
 DEVICE = torch.device('cuda')
 
+root= '/home/aaditya/PycharmProjects/Codefundopp/data_wf/'
+datasets =WFDataset(root)
+
+train_dl = DataLoader(datasets.train_ds, BATCH_SIZE)
+valid_dl = DataLoader(datasets.valid_ds, BATCH_SIZE)
+test_dl = DataLoader(datasets.test_ds, BATCH_SIZE)
+
+PATH = '/home/aaditya/PycharmProjects/Codefundopp/weights/xception_imagenet.pth'
+
+CKPT = '/home/aaditya/PycharmProjects/Codefundopp/weights/xception_train2.pth'
+model = Xception()
+model.load_scratch(PATH)
+model.to(DEVICE) # model.cuda will also work
+
+optimizer = torch.optim.Adam(model.parameters())
+
+class_weights = torch.Tensor(datasets.classw).cuda()
+criterion = nn.NLLLoss(weight=class_weights)
+val_criterion = nn.NLLLoss(weight=class_weights, size_average=False)
 
 def train(epoch, train_loader, optimizer):
     model.train()
@@ -20,7 +33,7 @@ def train(epoch, train_loader, optimizer):
         data, target = data.cuda(), target.cuda()
         optimizer.zero_grad()
         output = model(data)
-        loss = F.nll_loss(output, target)
+        loss = criterion(output, target)
         loss.backward()
         optimizer.step()
         if batch_idx % 10 == 0:
@@ -39,7 +52,7 @@ def test(test_loader):
         data, target = data.cuda(), target.cuda()
         output = model(data)
         # sum up batch loss
-        test_loss += F.nll_loss(output, target, size_average=False).item()
+        test_loss += val_criterion(output, target).item()
         # get the index of the max log-probability
         pred = output.data.max(1, keepdim=True)[1]
         test_accuracy += pred.eq(target.data.view_as(pred)).sum().item()
@@ -50,35 +63,8 @@ def test(test_loader):
         test_loss, 100. * test_accuracy))
 
 
-if __name__ == '__main__':
-    csv_path = '/home/aaditya/PycharmProjects/Codefundopp/eo_nasa_file_url_cls_8_cleaned.csv'
-    full_dataset = CustomDatasetFromCSV(csv_path, transform=transforms.Compose([
-        transforms.Resize((224,224), PIL.Image.ANTIALIAS),
-        transforms.ToTensor()
-    ]))
+for epoch in range(1, 3):
+    train(epoch, train_dl, optimizer)
+    test(valid_dl)
 
-    num_samples = len(full_dataset)
-    indices = list(range(num_samples))
-    split = int(np.floor(TRAIN_RATIO * num_samples))
-
-    if SHUFFLE:
-        np.random.shuffle(indices)
-
-    train_idx, valid_idx = indices[:split], indices[split:]
-    train_sampler = SubsetRandomSampler(train_idx)
-
-    valid_sampler = SubsetRandomSampler(valid_idx)
-
-    train_dl = DataLoader(full_dataset, BATCH_SIZE, sampler=train_sampler)
-    valid_dl = DataLoader(full_dataset, BATCH_SIZE, sampler=valid_sampler)
-    test_dl = DataLoader(full_dataset, BATCH_SIZE)
-
-    model = models.squeezenet1_0()
-    model.to(DEVICE)
-
-    optimizer = torch.optim.Adam(model.parameters())
-
-    for epoch in range(1, 2):
-        train(epoch, train_dl, optimizer)
-        test(valid_dl)
-
+torch.save(model.state_dict(), CKPT)
