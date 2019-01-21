@@ -3,72 +3,68 @@ from torchvision.datasets import ImageFolder
 from torchvision.transforms import transforms
 import os
 import numpy as np
-import pandas as pd
-from PIL import Image
-import matplotlib.pyplot as plt
-from sklearn.utils import class_weight
 
-class CustomDatasetFromCSV(Dataset):
-    """
-    Args:
-        csv_path (string): path to csv file
-        transform: pytorch transforms for transforms and tensor conversion
-        target_transform: A function/transform that takes
-            in the target and transforms it.
-
-    Attributes:
-        classes (list): List of the class names.
-        class_to_idx (dict): Dict with items (class_name, class_index).
-    """
-    def __init__(self, csv_path, transform=None, target_transform=None):
-        # csv_path = '/home/aaditya/PycharmProjects/Codefundopp/eo_nasa_file_url_cls_outof_10.csv'
-        self.data = pd.read_csv(csv_path)
-        self.classes = ['Dust and Haze', 'Floods', 'Sea and Lake Ice',
-                       'Severe Storms', 'Snow', 'Volcanoes',
-                       'Water Color', 'Wildfires']
-        self.c = len(self.classes)
-        self.class_to_idx = {k: i for i, k in enumerate(self.classes)}
-        self.labels = np.asarray(self.data.iloc[:, 2])
-        self.transform = transform
-        self.target_transform = target_transform
-
-    def __getitem__(self, index):
-        """
-        Args:
-            index (int): Index
-
-        Returns:
-            tuple: (sample, target) where target is class_index of the target class.
-        """
-        target = self.labels[index]
-
-        root = '/home/aaditya/PycharmProjects/Codefundopp/data'
-        sample = Image.open(f'{root}/{self.data.iloc[index, 0]}.jpg')
-
-        # Transform image to tensor
-        if self.transform is not None:
-            sample = self.transform(sample)
-        if self.target_transform is not None:
-            target = self.target_transform(target)
-
-        # Return image and the label
-        return sample, target
-
-    def __len__(self):
-        return len(self.data.index)
+# class CustomDatasetFromCSV(Dataset):
+#     """
+#     Args:
+#         csv_path (string): path to csv file
+#         transform: pytorch transforms for transforms and tensor conversion
+#         target_transform: A function/transform that takes
+#             in the target and transforms it.
+#
+#     Attributes:
+#         classes (list): List of the class names.
+#         class_to_idx (dict): Dict with items (class_name, class_index).
+#     """
+#     def __init__(self, csv_path, transform=None, target_transform=None):
+#         # csv_path = '/home/aaditya/PycharmProjects/Codefundopp/eo_nasa_file_url_cls_outof_10.csv'
+#         self.data = pd.read_csv(csv_path)
+#         self.classes = ['Dust and Haze', 'Floods', 'Sea and Lake Ice',
+#                        'Severe Storms', 'Snow', 'Volcanoes',
+#                        'Water Color', 'Wildfires']
+#         self.c = len(self.classes)
+#         self.class_to_idx = {k: i for i, k in enumerate(self.classes)}
+#         self.labels = np.asarray(self.data.iloc[:, 2])
+#         self.transform = transform
+#         self.target_transform = target_transform
+#
+#     def __getitem__(self, index):
+#         """
+#         Args:
+#             index (int): Index
+#
+#         Returns:
+#             tuple: (sample, target) where target is class_index of the target class.
+#         """
+#         target = self.labels[index]
+#
+#         root = '/home/aaditya/PycharmProjects/Codefundopp/data'
+#         sample = Image.open(f'{root}/{self.data.iloc[index, 0]}.jpg')
+#
+#         # Transform image to tensor
+#         if self.transform is not None:
+#             sample = self.transform(sample)
+#         if self.target_transform is not None:
+#             target = self.target_transform(target)
+#
+#         # Return image and the label
+#         return sample, target
+#
+#     def __len__(self):
+#         return len(self.data.index)
 
 
-def imshow(inp, title=None):
-    """Imshow for Tensor."""
-    inp = inp.numpy().transpose((1, 2, 0))
-    mean = np.array([0.485, 0.456, 0.406])
-    std = np.array([0.229, 0.224, 0.225])
-    inp = std * inp + mean
-    inp = np.clip(inp, 0, 1)
-    plt.imshow(inp)
-    if title is not None:
-        plt.title(title)
-    plt.pause(0.001)  # pause a bit so that plots are updated
+# def imshow(inp, title=None):
+#     """Imshow for Tensor."""
+#     inp = inp.numpy().transpose((1, 2, 0))
+#     mean = np.array([0.485, 0.456, 0.406])
+#     std = np.array([0.229, 0.224, 0.225])
+#     inp = std * inp + mean
+#     inp = np.clip(inp, 0, 1)
+#     plt.imshow(inp)
+#     if title is not None:
+#         plt.title(title)
+#     plt.pause(0.001)  # pause a bit so that plots are updated
 
 
 class WFDataset:
@@ -84,10 +80,11 @@ class WFDataset:
 
     @property
     def classw(self):
-        n_absent = 66
-        n_present = 422
-        y = [0]*n_absent + [1]*n_present
-        class_weights = class_weight.compute_class_weight('balanced', np.unique(y), y)
+        # n_absent = 66
+        # n_present = 422
+        # y = [0]*n_absent + [1]*n_present
+        # class_weights = class_weight.compute_class_weight('balanced', np.unique(y), y)
+        class_weights = np.array([3.6969697 , 0.57819905])
         return class_weights
 
     @property

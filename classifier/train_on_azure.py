@@ -9,8 +9,8 @@ import os
 import argparse
 import horovod.torch as hvd
 
-from classifier.dataset import WFDataset
-from classifier.xception import Xception
+from dataset import WFDataset
+from xception import Xception
 from azureml.core.run import Run
 
 # get the Azure ML run object
@@ -55,7 +55,7 @@ if args.cuda:
     torch.cuda.manual_seed(args.seed)
 
 
-kwargs = {'num_workers': 1, 'pin_memory': True} if args.cuda else {}
+kwargs = {'num_workers': 2, 'pin_memory': False} if args.cuda else {}
 
 data_folder = os.path.join(args.data_folder, 'data_wf')
 datasets =WFDataset(data_folder)
@@ -130,7 +130,7 @@ def train(epoch):
 
 
 def metric_average(val, name):
-    tensor = torch.Tensor(val)
+    tensor = torch.tensor(val)
     avg_tensor = hvd.allreduce(tensor, name=name)
     return avg_tensor.item()
 

@@ -1,10 +1,6 @@
-import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import torch.utils.model_zoo as model_zoo
-from torch.nn import init
-from fastai import vision
 
 pretrained_settings = {
     'xception': {
@@ -21,6 +17,27 @@ pretrained_settings = {
     }
 }
 
+
+class Flatten(nn.Module):
+    "Flatten `x` to a single dimension, often used at the end of a model. `full` for rank-1 tensor"
+
+    def __init__(self, full=False):
+        super().__init__()
+        self.full = full
+
+    def forward(self, x):
+        return x.view(-1) if self.full else x.view(x.size(0), -1)
+
+
+class AdaptiveConcatPool2d(nn.Module):
+    "Layer that concats `AdaptiveAvgPool2d` and `AdaptiveMaxPool2d`."
+    def __init__(self, sz=None):
+        "Output will be 2*sz or 2 if sz is None"
+        super().__init__()
+        sz = sz or 1
+        self.ap,self.mp = nn.AdaptiveAvgPool2d(sz), nn.AdaptiveMaxPool2d(sz)
+
+    def forward(self, x): return torch.cat([self.mp(x), self.ap(x)], 1)
 
 class SeparableConv2d(nn.Module):
     def __init__(self,in_channels,out_channels,kernel_size=1,stride=1,padding=0,dilation=1,bias=False):
@@ -92,13 +109,13 @@ class Xception(nn.Module):
     Xception optimized for the ImageNet dataset, as specified in
     https://arxiv.org/pdf/1610.02357.pdf
     """
-    def __init__(self):
+    def __init__(self, num_classes=2):
         """ Constructor
         Args:
             num_classes: number of classes
         """
         super(Xception, self).__init__()
-
+        self.num_classes = num_classes
         relu = nn.ReLU(inplace=True)
         self.body = [
             nn.Conv2d(3, 32, 3,2, 0, bias=False),
@@ -135,7 +152,20 @@ class Xception(nn.Module):
         self.features = nn.Sequential(*self.body)
 
         #feature output is 2048 x 10 x 10
-        self.classifier = vision.create_head(nf=4096, nc=2)
+        self.top = [
+            # nn.Conv2d(in_channels=2048, out_channels=512, kernel_size=1),
+            AdaptiveConcatPool2d(),
+            Flatten(),
+            nn.BatchNorm1d(num_features=4096),
+            nn.Dropout(p=0.25),
+            nn.Linear(in_features= 4096, out_features=512, bias=True),
+            nn.ReLU(inplace=True),
+            nn.BatchNorm1d(num_features=512),
+            nn.Dropout(p=0.5),
+            nn.Linear(in_features=512, out_features=self.num_classes, bias=True)
+        ]
+
+        self.classifier = nn.Sequential(*self.top)
 
     def forward(self, input):
         x = self.features(input)
@@ -147,3 +177,6 @@ class Xception(nn.Module):
 
         for param in self.features.parameters():
             param.requires_grad = False
+
+    def load_all(self, PATH):
+        self.load_state_dict(torch.load(PATH))
