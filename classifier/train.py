@@ -24,18 +24,26 @@ model.to(DEVICE) # model.cuda will also work
 optimizer = torch.optim.Adam(model.parameters())
 
 class_weights = torch.Tensor(datasets.classw).cuda()
-criterion = nn.NLLLoss(weight=class_weights)
-val_criterion = nn.NLLLoss(weight=class_weights, size_average=False)
+criterion = nn.CrossEntropyLoss(weight=class_weights)
+val_criterion = nn.CrossEntropyLoss(weight=class_weights, size_average=False)
 
 def train(epoch, train_loader, optimizer):
     model.train()
+    running_loss = 0.0
+    running_corrects = 0
     for batch_idx, (data, target) in enumerate(train_loader):
         data, target = data.cuda(), target.cuda()
         optimizer.zero_grad()
         output = model(data)
+        preds = torch.max(output, 1)[1]
         loss = criterion(output, target)
         loss.backward()
         optimizer.step()
+
+        # statistics
+        running_loss += loss.item() * data.size(0)
+        running_corrects += torch.sum(preds == target.data)
+
         if batch_idx % 10 == 0:
             print('Train Epoch: {} [({:.0f}%)]\tLoss: {:.6f}'.format(
                 epoch,

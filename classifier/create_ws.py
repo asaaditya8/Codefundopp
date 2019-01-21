@@ -11,10 +11,15 @@ class AZHelper:
 
     @classmethod
     def load_ws(cls):
-        return Workspace.from_config()
+        return Workspace.from_config('/home/aaditya/PycharmProjects/Codefundopp/classifier/aml_config/config.json')
 
     @classmethod
     def load_cp(cls, ws):
+        """
+        Creates or loads a gpu cluster
+        :param ws: Workspace
+        :return:
+        """
         compute_name = "gpucluster"
         compute_min_nodes = 0
         compute_max_nodes = 4
@@ -34,13 +39,12 @@ class AZHelper:
 
             # create the cluster
             compute_target = ComputeTarget.create(ws, compute_name, provisioning_config)
+            # can poll for a minimum number of nodes and for a specific timeout.
+            # if no min node count is provided it will use the scale settings for the cluster
+            compute_target.wait_for_completion(show_output=True)
 
-        # can poll for a minimum number of nodes and for a specific timeout.
-        # if no min node count is provided it will use the scale settings for the cluster
-        compute_target.wait_for_completion(show_output=True)
-
-        # For a more detailed view of current AmlCompute status, use the 'status' property
-        print(compute_target.status.serialize())
+        # use get_status() to get a detailed status for the current AmlCompute.
+        print(compute_target.get_status().serialize())
         return compute_target
 
     def create_ws(self):

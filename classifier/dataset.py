@@ -1,6 +1,7 @@
 from torch.utils.data import Dataset
 from torchvision.datasets import ImageFolder
 from torchvision.transforms import transforms
+import os
 import numpy as np
 import pandas as pd
 from PIL import Image
@@ -91,7 +92,7 @@ class WFDataset:
 
     @property
     def train_ds(self):
-        train_set = ImageFolder(self.root + '/train/', transforms.Compose([
+        train_set = ImageFolder(os.path.join(self.root, 'train'), transforms.Compose([
             transforms.Resize(self.size),
             transforms.CenterCrop(self.size),
             transforms.RandomHorizontalFlip(),
@@ -104,7 +105,7 @@ class WFDataset:
 
     @property
     def valid_ds(self):
-        valid_set = ImageFolder(self.root + '/val/', transforms.Compose([
+        valid_set = ImageFolder(os.path.join(self.root, 'val'), transforms.Compose([
             transforms.Resize(self.size),
             transforms.CenterCrop(self.size),
             transforms.ToTensor(),
@@ -114,7 +115,7 @@ class WFDataset:
 
     @property
     def test_ds(self):
-        test_set = ImageFolder(self.root + '/test/', transforms.Compose([
+        test_set = ImageFolder(os.path.join(self.root, 'test'), transforms.Compose([
             transforms.Resize(self.size),
             transforms.CenterCrop(self.size),
             transforms.ToTensor(),

@@ -140,7 +140,7 @@ class Xception(nn.Module):
     def forward(self, input):
         x = self.features(input)
         x = self.classifier(x)
-        return x
+        return F.softmax(x, dim=1)
 
     def load_scratch(self, PATH):
         self.features.load_state_dict(torch.load(PATH))
