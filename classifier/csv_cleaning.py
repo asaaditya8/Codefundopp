@@ -257,4 +257,6 @@ if __name__ == '__main__':
 
     root= '/home/aaditya/PycharmProjects/Codefundopp/data_wf/absent'
 
+    Image.fromarray()
+
 

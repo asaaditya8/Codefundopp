@@ -48,6 +48,10 @@ class AZHelper:
         return compute_target
 
     def create_ws(self):
+        """
+        Creates a new workspace.
+        :return: Workspace
+        """
         try:
             ws = Workspace.create(name=self.workspace_name,
                                   subscription_id=self.subscription_id,

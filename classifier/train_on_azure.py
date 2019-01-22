@@ -23,7 +23,7 @@ parser = argparse.ArgumentParser(description='PyTorch MNIST Example')
 parser.add_argument('--data-folder', type=str, dest='data_folder', help='data folder mounting point')
 parser.add_argument('--output_dir', type=str, default='./outputs', metavar='O',
                     help='output directory')
-parser.add_argument('--batch-size', type=int, default=64, metavar='N',
+parser.add_argument('--batch-size', type=int, default=8, metavar='N',
                     help='input batch size for training (default: 64)')
 parser.add_argument('--test-batch-size', type=int, default=1000, metavar='N',
                     help='input batch size for testing (default: 1000)')
@@ -55,7 +55,7 @@ if args.cuda:
     torch.cuda.manual_seed(args.seed)
 
 
-kwargs = {'num_workers': 2, 'pin_memory': False} if args.cuda else {}
+kwargs = {'num_workers': 2} if args.cuda else {}
 
 data_folder = os.path.join(args.data_folder, 'data_wf')
 datasets =WFDataset(data_folder)
@@ -79,7 +79,7 @@ def time():
     name = f'{now.date()}_{now.hour}-{now.minute}'
     return name
 
-N_FINETUNE_EPOCHS = 2
+N_FINETUNE_EPOCHS = 3
 CKPT = 'xception_train'
 model = Xception()
 model.load_scratch(PATH)
@@ -163,16 +163,18 @@ def test():
             test_loss, 100. * test_accuracy))
 
 
-for epoch in range(1, N_FINETUNE_EPOCHS):
+for epoch in range(1, N_FINETUNE_EPOCHS+1):
     train(epoch)
-    test()
-    torch.save(model.state_dict(), os.path.join(args.output_dir, f'{CKPT}_{time()}.pth'))
+    # test()
 
-for param in model.features.parameters():
-    param.requires_grad = True
+# torch.save(model, os.path.join(args.output_dir, f'{CKPT}_full.pth'))
+torch.save(model.state_dict(), os.path.join(args.output_dir, f'{CKPT}_stdct.pth'))
 
-for epoch in range(N_FINETUNE_EPOCHS, args.epochs + 1):
-    train(epoch)
-    test()
-    torch.save(model.state_dict(), os.path.join(args.output_dir, f'{CKPT}_{time()}.pth'))
+# for param in model.features.parameters():
+#     param.requires_grad = True
+#
+# for epoch in range(N_FINETUNE_EPOCHS+1, args.epochs + 1):
+#     train(epoch)
+#     test()
+#     torch.save(model.state_dict(), os.path.join(args.output_dir, f'{CKPT}_{time()}.pth'))
 

@@ -14,12 +14,12 @@ train_dl = DataLoader(datasets.train_ds, BATCH_SIZE)
 valid_dl = DataLoader(datasets.valid_ds, BATCH_SIZE)
 test_dl = DataLoader(datasets.test_ds, BATCH_SIZE)
 
-PATH = '/home/aaditya/PycharmProjects/Codefundopp/weights/xception_imagenet.pth'
+PATH = '/home/aaditya/PycharmProjects/Codefundopp/classifier/weights/xception_imagenet.pth'
 
-CKPT = '/home/aaditya/PycharmProjects/Codefundopp/weights/xception_train2.pth'
+CKPT = '/home/aaditya/PycharmProjects/Codefundopp/weights/xception_train3.pth'
 model = Xception()
 model.load_scratch(PATH)
-model.to(DEVICE) # model.cuda will also work
+# model.to(DEVICE) # model.cuda will also work
 
 optimizer = torch.optim.Adam(model.parameters())
 
@@ -71,8 +71,9 @@ def test(test_loader):
         test_loss, 100. * test_accuracy))
 
 
-for epoch in range(1, 3):
-    train(epoch, train_dl, optimizer)
-    test(valid_dl)
+# for epoch in range(1, 3):
+#     train(epoch, train_dl, optimizer)
+#     test(valid_dl)
+#
+# torch.save(model.state_dict(), CKPT)
 
-torch.save(model.state_dict(), CKPT)
