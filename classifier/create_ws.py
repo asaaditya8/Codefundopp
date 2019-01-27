@@ -1,5 +1,5 @@
 from azureml.core import Workspace
-from azureml.core.compute import AmlCompute, ComputeTarget
+from azureml.core.compute import AmlCompute, ComputeTarget, RemoteCompute
 from azureml.exceptions import ComputeTargetException
 
 
@@ -11,7 +11,24 @@ class AZHelper:
 
     @classmethod
     def load_ws(cls):
-        return Workspace.from_config('/home/aaditya/PycharmProjects/Codefundopp/classifier/aml_config/config.json')
+        return Workspace.from_config('classifier/aml_config/config.json')
+
+    @classmethod
+    def load_vm(cls, ws, address):
+        compute_name = 'pyt-rvm'
+        try:
+            compute_target = ComputeTarget(workspace=ws, name=compute_name)
+            print('found compute target. just use it. ' + compute_name)
+        except:
+            attach_config = RemoteCompute.attach_configuration(address=address,
+                                                               ssh_port=22,
+                                                               username='asaaditya8',
+                                                               password="DisasterM0nit0r")
+
+            compute_target = ComputeTarget.attach(ws, compute_name, attach_config)
+            compute_target.wait_for_completion(show_output=True)
+
+        return compute_target
 
     @classmethod
     def load_cp(cls, ws):

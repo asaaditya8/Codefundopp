@@ -5,12 +5,11 @@ import torch
 from torch import nn
 from fastai import vision
 from torchvision import models
-from classifier.dataset import CustomDatasetFromCSV
 import pretrainedmodels
 from classifier.xception import Xception
 
 def model_building():
-    PATH = '/home/aaditya/PycharmProjects/Codefundopp/weights/xception_imagenet.pth'
+    PATH = 'weights/xception_imagenet.pth'
 
     inp = torch.Tensor(4, 3, 299, 299).uniform_(-1, 1)
     model = XModel()

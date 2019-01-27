@@ -4,7 +4,7 @@ from torchvision.datasets import ImageFolder
 from torchvision.transforms import transforms
 import os
 import numpy as np
-from PIL import Image
+
 
 # class CustomDatasetFromCSV(Dataset):
 #     """
@@ -82,14 +82,9 @@ class WFDataset:
 
     @property
     def classw(self):
-        tpath = os.path.join(self.root, 'train')
-        cls = sorted(os.listdir(tpath))
-
-        y = []
-        for i, c in enumerate(cls):
-            fpath = os.path.join(self.root, 'train', c)
-            y.extend([i] * len(os.listdir(fpath)))
-
+        n_absent = 62
+        n_present = 278
+        y = [0]*n_absent + [1]*n_present
         class_weights = class_weight.compute_class_weight('balanced', np.unique(y), y)
         # class_weights = np.array([3.6969697 , 0.57819905])
         # class_weights = np.array([1.0 , 1.0])
@@ -137,26 +132,9 @@ if __name__ == "__main__":
     # factor = 1 + np.sqrt(2) * (1 - np.cos(np.pi/160 * deg))
     # rot_size = int(size * factor)
     # deg = 10
-    #
-    root= 'data_wf/test/absent'
-    ds = WFDataset(root)
-    # tmfs = transforms.Compose([
-    #     transforms.RandomHorizontalFlip(),
-    #     transforms.RandomVerticalFlip(),
-    #     transforms.ColorJitter(hue=0.1)
-    # ])
-    #
-    # img_list = list(os.listdir(root))
-    #
-    # a = 0
-    # for i in range(2):
-    #     for f in img_list:
-    #         path = f'{root}/{f}'
-    #         img = Image.open(path)
-    #         out_img = tmfs(img)
-    #         out_img.save(f'{root}/{a}_{f}')
-    #         a += 1
 
+    root= 'data_wf/'
+    ds = WFDataset(root)
     # Get a batch of training data
     # inputs, classes = next(iter(dataloaders['train']))
 

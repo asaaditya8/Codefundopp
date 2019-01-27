@@ -11,25 +11,17 @@ import math
 
 CUR_IDX = 0
 
-def trial():
-    try:
-        AZHelper.load_ws()
-        print('Done')
-    except:
-        print('Failed')
-
-
 def fresh_csv():
-    CSV_PATH = '/home/aaditya/PycharmProjects/Codefundopp/eo_nasa_urls.csv'
+    CSV_PATH = 'eo_nasa_urls.csv'
     df = pd.read_csv(CSV_PATH)
 
     # ADDING FILENAME TO THE CSV
-    FILENAME_csv = '/home/aaditya/PycharmProjects/Codefundopp/eo_nasa_urls_names.csv'
+    FILENAME_csv = 'eo_nasa_urls_names.csv'
     df = df.rename(columns={'Unnamed: 0': 'filename'})
     df.to_csv(FILENAME_csv, index=False)
 
     # REMOVING MULTILABEL URLS
-    SINGLE_CLASS_csv = '/home/aaditya/PycharmProjects/Codefundopp/eo_nasa_urls_names_sing_cls.csv'
+    SINGLE_CLASS_csv = 'eo_nasa_urls_names_sing_cls.csv'
     df = pd.read_csv(FILENAME_csv)
 
     trash_idx = []
@@ -41,7 +33,7 @@ def fresh_csv():
     df.to_csv(SINGLE_CLASS_csv, index=False)
 
     # REMOVE CLASSES WITH SINGLE DIGIT IMAGE SIZE
-    ClASS_10_csv = '/home/aaditya/PycharmProjects/Codefundopp/eo_nasa_urls_names_10_sing_cls.csv'
+    ClASS_10_csv = 'eo_nasa_urls_names_10_sing_cls.csv'
     trash_cols = []
     for col in df.columns[2:]:
         if df[col].sum() < 10:
@@ -51,7 +43,7 @@ def fresh_csv():
     df.to_csv(ClASS_10_csv, index=False)
 
     # REMOVING DISASTER COLUMNS WITH JUST CLASS INDEX
-    FILE_CLS_csv = '/home/aaditya/PycharmProjects/Codefundopp/eo_nasa_file_url_cls_outof_10.csv'
+    FILE_CLS_csv = 'eo_nasa_file_url_cls_outof_10.csv'
     disasters = df.columns[2:]
     cl_idxs = []
     for i in range(len(df)):
@@ -63,9 +55,9 @@ def fresh_csv():
     df.to_csv(FILE_CLS_csv, index=False)
 
     # REMOVING RECORDS WITH NON EXISTENT IMAGES
-    FILE_CSL_jpg = '/home/aaditya/PycharmProjects/Codefundopp/eo_nasa_file_url_cls_10_jpg.csv'
+    FILE_CSL_jpg = 'eo_nasa_file_url_cls_10_jpg.csv'
 
-    root = '/home/aaditya/PycharmProjects/Codefundopp/data'
+    root = 'data'
     existing_filenames = os.listdir(root)
     existing_filenames = [int(f.split('.')[0]) for f in existing_filenames if f.split('.')[-1] == 'jpg']
 
@@ -78,8 +70,8 @@ def fresh_csv():
     df.to_csv(FILE_CSL_jpg, index=False)
 
     # REMOVING OTHER TYPES OF IMAGES
-    FILE_CLS_cleaned = '/home/aaditya/PycharmProjects/Codefundopp/eo_nasa_file_url_cls_10_cleaned.csv'
-    bekar_csv = '/home/aaditya/PycharmProjects/Codefundopp/bekar_images.csv'
+    FILE_CLS_cleaned = 'eo_nasa_file_url_cls_10_cleaned.csv'
+    bekar_csv = 'bekar_images.csv'
 
     bad_df = pd.read_csv(bekar_csv)['filename']
     unique_bad_names = bad_df['filename'].unique() # list of int
@@ -93,7 +85,7 @@ def fresh_csv():
     df.to_csv(FILE_CLS_cleaned, index=False)
 
     # REMOVING MANMADE AND TEMPERATURE EXTREME CLASS
-    FILE_CLS_8 = '/home/aaditya/PycharmProjects/Codefundopp/eo_nasa_file_url_cls_8_cleaned.csv'
+    FILE_CLS_8 = 'eo_nasa_file_url_cls_8_cleaned.csv'
 
     df = df.drop(df.index[df['Class'] == 2])
     df = df.drop(df.index[df['Class'] == 6])
@@ -119,12 +111,12 @@ def fresh_csv():
 
 def image_ops():
     # Copying wildfire images to new destination
-    FILE_CLS_8 = '/home/aaditya/PycharmProjects/Codefundopp/eo_nasa_file_url_cls_8_cleaned.csv'
+    FILE_CLS_8 = 'eo_nasa_file_url_cls_8_cleaned.csv'
 
     df = pd.read_csv(FILE_CLS_8)
 
-    root = '/home/aaditya/PycharmProjects/Codefundopp/data'
-    dst = '/home/aaditya/PycharmProjects/Codefundopp/data_wf/present'
+    root = 'data'
+    dst = 'data_wf/present'
 
     wildfire_records = df[df['Class'] == 7]
 
@@ -135,7 +127,7 @@ def image_ops():
         shutil.copy(fsrc, fdst)
 
     #Renaming no wildfire screenshots
-    root = '/home/aaditya/PycharmProjects/Codefundopp/data_wf/absent'
+    root = 'data_wf/absent'
 
     count = 0
     for f in os.listdir(root):
@@ -176,13 +168,28 @@ def image_ops():
         img = img.crop((235,50, 1545, 900))
         img.save(fsrc)
 
+        # Moving images into folders
+        dst = 'data/'
+
+        # wildfire_records = df[df['Class'] == 7]
+        classes = ['Dust and Haze', 'Floods', 'Sea and Lake Ice',
+                   'Severe Storms', 'Snow', 'Volcanoes',
+                   'Water Color', 'Wildfires']
+
+        for i in range(len(df)):
+            fname = df.iloc[i, 0]
+            folder = classes[df.iloc[i, 2]]
+            fsrc = f'{root}/{fname}.jpg'
+            fdst = f'{dst}/{folder}/{fname}.jpg'
+            shutil.move(fsrc, fdst)
+
 def plot_samples(cls, num):
     """
     Plots random samples of a class
     int cls: Class index
     int num: Number of samples to plot
     """
-    FILE_CLS_cleaned = '/home/aaditya/PycharmProjects/Codefundopp/eo_nasa_file_url_cls_10_jpg.csv'
+    FILE_CLS_cleaned = 'eo_nasa_file_url_cls_10_jpg.csv'
     df = pd.read_csv(FILE_CLS_cleaned)
 
     classes = ['Dust and Haze', 'Floods', 'Manmade', 'Sea and Lake Ice',
@@ -198,7 +205,7 @@ def plot_samples(cls, num):
     f.suptitle(classes[cls])
 
     for ax in axarr.flat:
-        root = '/home/aaditya/PycharmProjects/Codefundopp/data'
+        root = 'data'
         idx = np.random.randint(len(records))
         try:
             sample = Image.open(f'{root}/{records.iloc[idx, 0]}.jpg')
@@ -219,7 +226,7 @@ def plot_all(num):
     int num: Number of samples to plot
     """
     global CUR_IDX
-    FILE_CLS_cleaned = '/home/aaditya/PycharmProjects/Codefundopp/eo_nasa_file_url_cls_10_jpg.csv'
+    FILE_CLS_cleaned = 'eo_nasa_file_url_cls_10_jpg.csv'
     df = pd.read_csv(FILE_CLS_cleaned)
 
     if num > len(df) - CUR_IDX - 1:
@@ -232,7 +239,7 @@ def plot_all(num):
 
     idx = 0
     for ax in axarr.flat:
-        root = '/home/aaditya/PycharmProjects/Codefundopp/data'
+        root = 'data'
         try:
             sample = Image.open(f'{root}/{df.iloc[idx + CUR_IDX, 0]}.jpg')
         except FileNotFoundError:
@@ -247,16 +254,42 @@ def plot_all(num):
     plt.show()
     CUR_IDX += idx
 
+def organize_dataset(root):
+    folders = os.listdir(root)
+
+    fpaths = [f'{root}/{e}/{f}' for e in folders for f in os.listdir(f'{root}/{e}')]
+
+    os.makedirs(f'{root}/test', exist_ok=True)
+    os.makedirs(f'{root}/train', exist_ok=True)
+    os.makedirs(f'{root}/val', exist_ok=True)
+
+    for f in folders:
+        os.makedirs(f'{root}/test/{f}', exist_ok=True)
+        os.makedirs(f'{root}/train/{f}', exist_ok=True)
+        os.makedirs(f'{root}/val/{f}', exist_ok=True)
+
+    for f in fpaths:
+        g = f.split('/')
+        shutil.copy(f, f'{root}/test/{g[1]}')
+
+    np.random.shuffle(fpaths)
+
+    cut = int(len(fpaths) * 0.8)
+
+    for f in fpaths[:cut]:
+        g = f.split('/')
+        shutil.copy(f, f'{root}/train/{g[1]}')
+
+    for f in fpaths[cut:]:
+        g = f.split('/')
+        shutil.copy(f, f'{root}/val/{g[1]}')
+
+    for f in folders:
+        shutil.rmtree(f'{root}/{f}')
+
 
 if __name__ == '__main__':
-    # check core SDK version number
-    # print("Azure ML SDK Version: ", azureml.core.VERSION)
-    FILE_CLS_8 = '/home/aaditya/PycharmProjects/Codefundopp/eo_nasa_file_url_cls_8_cleaned.csv'
+    # FILE_CLS_8 = 'eo_nasa_file_url_cls_8_cleaned.csv'
 
-    df = pd.read_csv(FILE_CLS_8)
-
-    root= '/home/aaditya/PycharmProjects/Codefundopp/data_wf/absent'
-
-    Image.fromarray()
-
+    # df = pd.read_csv(FILE_CLS_8)
 

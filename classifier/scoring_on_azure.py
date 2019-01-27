@@ -197,7 +197,7 @@ def run(input_data):
 
         # get prediction
         with torch.no_grad():
-            output = model(input_data.view(1, 3, 299, 299))
+            output = F.softmax(model(input_data.view(1, 3, 299, 299)), dim=1)
             classes = ['absent', 'present']
             # For just one sample
             pred_probs = output.numpy()[0]

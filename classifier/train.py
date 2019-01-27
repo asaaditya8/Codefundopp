@@ -1,79 +1,43 @@
 from classifier.dataset import WFDataset
 from classifier.xception import Xception
+from classifier.learner import Learner
 import torch
 from torch import nn
+import torch.nn.functional as F
 from torch.utils.data import DataLoader
+# import pyvarinf
 
 BATCH_SIZE = 8
 DEVICE = torch.device('cuda')
 
-root= '/home/aaditya/PycharmProjects/Codefundopp/data_wf/'
-datasets =WFDataset(root)
+root= 'data_wf'
+datasets = WFDataset(root)
 
-train_dl = DataLoader(datasets.train_ds, BATCH_SIZE)
+train_dl = DataLoader(datasets.train_ds, BATCH_SIZE, shuffle=True)
 valid_dl = DataLoader(datasets.valid_ds, BATCH_SIZE)
 test_dl = DataLoader(datasets.test_ds, BATCH_SIZE)
 
-PATH = '/home/aaditya/PycharmProjects/Codefundopp/classifier/weights/xception_imagenet.pth'
+PATH = 'classifier/weights/xception_imagenet.pth'
 
-CKPT = '/home/aaditya/PycharmProjects/Codefundopp/weights/xception_train3.pth'
-model = Xception()
+CKPT = 'weights/xception_all0.pth'
+model = Xception(probs=[0.25, 0.5])
+# model.load_all(CKPT)
 model.load_scratch(PATH)
-# model.to(DEVICE) # model.cuda will also work
+# var_model = pyvarinf.Variationalize(model.classifier)
+model.to(DEVICE)
+optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
 
-optimizer = torch.optim.Adam(model.parameters())
-
-class_weights = torch.Tensor(datasets.classw).cuda()
+class_weights = torch.Tensor(datasets.classw).to(DEVICE)
 criterion = nn.CrossEntropyLoss(weight=class_weights)
-val_criterion = nn.CrossEntropyLoss(weight=class_weights, size_average=False)
+val_criterion = nn.CrossEntropyLoss(weight=class_weights, reduction='sum')
 
-def train(epoch, train_loader, optimizer):
-    model.train()
-    running_loss = 0.0
-    running_corrects = 0
-    for batch_idx, (data, target) in enumerate(train_loader):
-        data, target = data.cuda(), target.cuda()
-        optimizer.zero_grad()
-        output = model(data)
-        preds = torch.max(output, 1)[1]
-        loss = criterion(output, target)
-        loss.backward()
-        optimizer.step()
+learn = Learner(model, optimizer, train_dl, valid_dl, criterion, val_criterion, DEVICE)
 
-        # statistics
-        running_loss += loss.item() * data.size(0)
-        running_corrects += torch.sum(preds == target.data)
+# for param in model.features.parameters():
+#     param.requires_grad = True
 
-        if batch_idx % 10 == 0:
-            print('Train Epoch: {} [({:.0f}%)]\tLoss: {:.6f}'.format(
-                epoch,
-                100. * batch_idx / len(train_loader), loss.item()))
+for epoch in range(1, 4):
+    learn.train(epoch)
+    learn.test()
 
-            # log the loss to the Azure ML run
-
-
-def test(test_loader):
-    model.eval()
-    test_loss = 0.
-    test_accuracy = 0.
-    for data, target in test_loader:
-        data, target = data.cuda(), target.cuda()
-        output = model(data)
-        # sum up batch loss
-        test_loss += val_criterion(output, target).item()
-        # get the index of the max log-probability
-        pred = output.data.max(1, keepdim=True)[1]
-        test_accuracy += pred.eq(target.data.view_as(pred)).sum().item()
-
-    test_accuracy /= len(test_loader.dataset)
-
-    print('\nTest set: Average loss: {:.4f}, Accuracy: {:.2f}%\n'.format(
-        test_loss, 100. * test_accuracy))
-
-
-# for epoch in range(1, 3):
-#     train(epoch, train_dl, optimizer)
-#     test(valid_dl)
-#
-# torch.save(model.state_dict(), CKPT)
-
+torch.save(model.state_dict(), CKPT)
