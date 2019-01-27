@@ -139,23 +139,23 @@ if __name__ == "__main__":
     # deg = 10
     #
     root= 'data_wf/test/absent'
-    ds = WFDataset(root)
-    # tmfs = transforms.Compose([
-    #     transforms.RandomHorizontalFlip(),
-    #     transforms.RandomVerticalFlip(),
-    #     transforms.ColorJitter(hue=0.1)
-    # ])
-    #
-    # img_list = list(os.listdir(root))
-    #
-    # a = 0
-    # for i in range(2):
-    #     for f in img_list:
-    #         path = f'{root}/{f}'
-    #         img = Image.open(path)
-    #         out_img = tmfs(img)
-    #         out_img.save(f'{root}/{a}_{f}')
-    #         a += 1
+    # ds = WFDataset(root)
+    tmfs = transforms.Compose([
+        transforms.RandomHorizontalFlip(),
+        transforms.RandomVerticalFlip(),
+        transforms.ColorJitter(hue=0.1)
+    ])
+
+    img_list = list(os.listdir(root))
+
+    a = 0
+    for i in range(1):
+        for f in img_list:
+            path = f'{root}/{f}'
+            img = Image.open(path)
+            out_img = tmfs(img)
+            out_img.save(f'{root}/{a}_{f}')
+            a += 1
 
     # Get a batch of training data
     # inputs, classes = next(iter(dataloaders['train']))

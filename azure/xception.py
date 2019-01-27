@@ -1,13 +1,22 @@
-import base64
-from io import BytesIO
-from PIL import Image
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torchvision import transforms
-import json
 
-from azureml.core.model import Model
+pretrained_settings = {
+    'xception': {
+        'imagenet': {
+            'url': 'http://data.lip6.fr/cadene/pretrainedmodels/xception-43020ad28.pth',
+            'input_space': 'RGB',
+            'input_size': [3, 299, 299],
+            'input_range': [0, 1],
+            'mean': [0.5, 0.5, 0.5],
+            'std': [0.5, 0.5, 0.5],
+            'num_classes': 1000,
+            'scale': 0.8975 # The resize parameter of the validation transform should be 333, and make sure to center crop at 299x299
+        }
+    }
+}
+
 
 class Flatten(nn.Module):
     "Flatten `x` to a single dimension, often used at the end of a model. `full` for rank-1 tensor"
@@ -170,47 +179,4 @@ class Xception(nn.Module):
             param.requires_grad = False
 
     def load_all(self, PATH):
-        self.load_state_dict(torch.load(PATH, map_location='cpu'))
-
-def b64_2_img(mystr):
-    data = mystr.encode('utf-8')
-    buff = BytesIO(base64.b64decode(data))
-    return Image.open(buff)
-
-def init():
-    global model
-    model_path = Model.get_model_path('xception_wf_1')
-    model = Xception(num_classes=2, probs=[0.25, 0.5])
-    model.load_all(model_path)
-    model.eval()
-
-def run(input_data):
-    input_data = b64_2_img(json.loads(input_data)['data'])
-
-    try:
-        SIZE = 299
-        normalize = transforms.Normalize(mean=[0.5, 0.5, 0.5],
-                                         std=[0.5, 0.5, 0.5])
-
-        tmfs = transforms.Compose([
-            transforms.Resize(SIZE),
-            transforms.CenterCrop(SIZE),
-            transforms.ToTensor(),
-            normalize
-        ])
-
-        input_data = tmfs(input_data)
-
-        # get prediction
-        with torch.no_grad():
-            output = F.softmax(model(input_data.view(1, 3, 299, 299)), dim=1)
-            classes = ['absent', 'present']
-            # For just one sample
-            pred_probs = output.numpy()[0]
-            index = torch.argmax(output, 1)
-
-        result = {"label": classes[index], "probability": str(pred_probs[index])}
-        return result
-    except Exception as e:
-        result = str(e)
-        return {"error": result}
+        self.load_state_dict(torch.load(PATH))

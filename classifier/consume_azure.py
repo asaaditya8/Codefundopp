@@ -1,16 +1,26 @@
+import base64
+from io import BytesIO
+
 import requests
 import json
-import numpy as np
 from PIL import Image
+
+def im_2_b64(image):
+    buff = BytesIO()
+    image.save(buff, format="JPEG")
+    img_str = base64.b64encode(buff.getvalue())
+    new_str = img_str.decode('utf-8')
+    return new_str
 
 def test_image(PATH):
     img = Image.open(PATH)
-    inp = np.array(img, dtype='float')
-    inp_data = json.dumps({'data': inp.tolist()})
+    inp = im_2_b64(img)
+    inp_data = json.dumps({'data': inp})
     return inp_data
 
-scoring_uri = 'http://104.45.178.96:80/score'
-input_data = test_image('data_wf/val/absent/nowf_36.jpg')
+scoring_uri = 'http://104.45.179.131:80/score'
+input_data = test_image('data_wf/test/absent/6_e7.jpg')
 headers = {'Content-Type': 'application/json'}
+
 result = requests.post(scoring_uri, input_data, headers=headers)
 print(result.text)

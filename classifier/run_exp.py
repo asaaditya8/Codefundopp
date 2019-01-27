@@ -2,7 +2,7 @@ from azureml.core.runconfig import RunConfiguration
 from classifier.create_ws import AZHelper
 from azureml.core import Experiment, ScriptRunConfig
 
-address = '40.117.154.95'
+address = '23.96.102.153'
 script_folder = 'azure'
 
 ws = AZHelper.load_ws()
@@ -19,3 +19,7 @@ exp = Experiment(ws, name=experiment_name)
 src = ScriptRunConfig(source_directory = script_folder, script = 'train.py', run_config = run_dsvm)
 run = exp.submit(src)
 run.wait_for_completion(show_output = True)
+
+model = run.register_model(model_name='xception_all_1',
+                           model_path='./outputs/xception_all_rvm_2.pth')
+print(model.name, model.id, model.version, sep = '\t')
