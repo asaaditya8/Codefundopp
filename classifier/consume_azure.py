@@ -18,7 +18,7 @@ def test_image(PATH):
     inp_data = json.dumps({'data': inp})
     return inp_data
 
-scoring_uri = 'http://104.45.179.131:80/score'
+scoring_uri = 'http://20.185.214.218:80/score'
 input_data = test_image('data_wf/test/absent/6_e7.jpg')
 headers = {'Content-Type': 'application/json'}
 
