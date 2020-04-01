@@ -8,7 +8,7 @@ from torch.utils.data import DataLoader
 BATCH_SIZE = 16
 DEVICE = torch.device('cuda')
 
-root= '/home/asaaditya8/PycharmProjects/Codefundopp/data'
+root= '/home/asaaditya8/PycharmProjects/Codefundopp/data_wf'
 datasets = WFDataset(root)
 
 train_dl = DataLoader(datasets.train_ds, BATCH_SIZE, shuffle=True)
@@ -17,10 +17,11 @@ test_dl = DataLoader(datasets.test_ds, BATCH_SIZE, shuffle=True)
 
 PATH = '/home/asaaditya8/PycharmProjects/Codefundopp/classifier/weights/xception_imagenet.pth'
 
-CKPT = '/home/asaaditya8/PycharmProjects/Codefundopp/weights/xception_all_rvm_2.pth'
-OUTPUT = './outputs/xception_all_rvm_2.pth'
+NAME = 'xception_wf_rvm_2.pth'
+CKPT = '/home/asaaditya8/PycharmProjects/Codefundopp/weights/' + NAME
+OUTPUT = './outputs/' + NAME
 
-model = Xception(num_classes=6, probs=[0.25, 0.1])
+model = Xception(num_classes=2, probs=[0.25, 0.5])
 model.load_scratch(PATH)
 model.to(DEVICE)
 optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
@@ -38,7 +39,7 @@ for epoch in range(1, 2):
 for param in model.features.parameters():
     param.requires_grad = True
 
-for epoch in range(2, 12):
+for epoch in range(2, 7):
     learn.train(epoch)
     learn.test()
 

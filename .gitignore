@@ -1,3 +1,19 @@
 /virenv
 
 *.jpg
+*.pth
+
+/xception_all_rvm_2.pth
+/xception_wf_rvm_2.pth
+/new_video_ppt_with_captions.mp4
+/cropped_tasmanian_wf.png
+
+.idea/
+__pycache__/
+/pytorch-distr-hvd/aml_config/
+/azure/aml_config/
+/pytorch-distr-hvd/.amlignore
+/test/
+/azure/.amlignore
+/classifier/aml_config/
+/.ipynb_checkpoints/
